@@ -4,6 +4,7 @@ import client.IRoutingProtocol;
 import client.LinkLayer;
 import client.Packet;
 
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,10 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
     private LinkLayer linkLayer;
 
     private HashMap<Integer, RoutingEntry> forwardingTable;
+
+    public DistanceVectorProtocol() {
+        forwardingTable = new HashMap<>();
+    }
 
     @Override
     public void init(LinkLayer linkLayer) {
@@ -26,8 +31,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         }
 
         if (forwardingTable.isEmpty()) {
-            for (Packet packet : packets)
-                sendEmptyPacket(packet.getSourceAddress());
+            broadcastEmptyPacket();
         } else {
             updateKnownHostsList(packets);
             updateForwardingTableFromReceivedPackets(packets);
@@ -36,15 +40,36 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
     }
 
     private void sendTableToKnownNeighbours(HashMap<Integer, RoutingEntry> forwardingTable) {
+        try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(byteOut);
+            out.writeObject(forwardingTable);
 
+            linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), 0, byteOut.toByteArray()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void sendEmptyPacket(int destination) {
-
+    private void broadcastEmptyPacket() {
+        linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), 0, new byte[0]));
     }
 
     private void updateForwardingTableFromReceivedPackets(Packet[] packets) {
+        for (Packet packet : packets) {
+            getForwardingTableFromPacket(packet);
+        }
+    }
 
+    private HashMap<Integer, RoutingEntry> getForwardingTableFromPacket(Packet packet) {
+        try {
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(packet.getRawData());
+            ObjectInputStream in = new ObjectInputStream(byteIn);
+            return (HashMap<Integer, RoutingEntry>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void updateKnownHostsList(Packet[] packets) {
