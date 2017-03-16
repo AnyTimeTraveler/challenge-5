@@ -12,14 +12,14 @@ import java.lang.reflect.InvocationTargetException;
 
 public class Program {
     // Change to your group number (e.g. use a student number)
-    private static int groupId = 0;
+    private static int groupId = 1802607;
 
     // Change to your group password (doesn't matter what it is,
     // as long as everyone in the group uses the same string)
     private static String password = "Lamas is the password";
 
     // Change to your protocol implementation
-    private static Class<? extends IRoutingProtocol> protocolImpl = DummyRoutingProtocol.class;
+    private static Class<? extends IRoutingProtocol> protocolImpl = DistanceVectorProtocol.class;
 
     // Challenge server address
     private static String serverAddress = "netsys.student.utwente.nl";
