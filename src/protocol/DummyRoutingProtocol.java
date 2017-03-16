@@ -9,7 +9,7 @@ public class DummyRoutingProtocol implements IRoutingProtocol {
     private LinkLayer linkLayer;
 
     // You can use this data structure to store your forwarding table with extra information.
-    private HashMap<Integer, DummyRoute> myForwardingTable = new HashMap<>();
+    private HashMap<Integer, RoutingEntry> myForwardingTable = new HashMap<>();
 
     @Override
     public void init(LinkLayer linkLayer) {
@@ -37,14 +37,14 @@ public class DummyRoutingProtocol implements IRoutingProtocol {
             // reading one cell from the DataTable can be done using the  dt.get(row,column)  method
 
            /* example code for inserting a route into myForwardingTable:
-               DummyRoute r = new DummyRoute();
+               RoutingEntry r = new RoutingEntry();
                r.nextHop = ...someneighbour...;
                myForwardingTable.put(...somedestination... , r);
            */
 
            /* example code for checking whether some destination is already in myForwardingTable, and accessing it:
                if (myForwardingTable.containsKey(dest)) {
-                   DummyRoute r = myForwardingTable.get(dest);
+                   RoutingEntry r = myForwardingTable.get(dest);
                    // do something with r.destination and r.nextHop; you can even modify them
                }
            */
@@ -78,7 +78,7 @@ public class DummyRoutingProtocol implements IRoutingProtocol {
         // <Destination, NextHop>
         HashMap<Integer, Integer> ft = new HashMap<>();
 
-        for (Map.Entry<Integer, DummyRoute> entry : myForwardingTable.entrySet()) {
+        for (Map.Entry<Integer, RoutingEntry> entry : myForwardingTable.entrySet()) {
             ft.put(entry.getKey(), entry.getValue().nextHop);
         }
 
