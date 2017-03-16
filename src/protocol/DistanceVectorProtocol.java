@@ -39,12 +39,20 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         } else {
             updateKnownNeightboursList(packets);
             updateForwardingTableFromReceivedPackets(packets);
-            sendTableToKnownNeighbours(forwardingTable);
+            sendTableToKnownNeighbours();
         }
     }
 
-    private void sendTableToKnownNeighbours(HashMap<Integer, RoutingEntry> forwardingTable) {
-        linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), 0, serializeRoutingTable(forwardingTable)));
+    private void sendTableToKnownNeighbours() {
+        for (int neighbour : neightboursList) {
+            HashMap<Integer, RoutingEntry> personalizedForwardingTable = new HashMap<>(forwardingTable);
+            for (HashMap.Entry<Integer, RoutingEntry> personalizedEntry : forwardingTable.entrySet()) {
+                if (personalizedEntry.getValue().nextHop == neighbour) {
+                    personalizedForwardingTable.remove(personalizedEntry.getKey());
+                }
+            }
+            linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), neighbour, serializeRoutingTable(personalizedForwardingTable)));
+        }
     }
 
     byte[] serializeRoutingTable(HashMap<Integer, RoutingEntry> forwardingTable) {
