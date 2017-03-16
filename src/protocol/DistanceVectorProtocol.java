@@ -102,7 +102,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         try {
             ByteArrayInputStream byteIn = new ByteArrayInputStream(packet.getRawData());
             ObjectInputStream in = new ObjectInputStream(byteIn);
-            //TODO Check
+            // no check needed
             return (HashMap<Integer, RoutingEntry>) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -115,7 +115,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
             int sourceAddress = packet.getSourceAddress();
             if (!neighboursList.contains(sourceAddress)) {
                 neighboursList.add(sourceAddress);
-                forwardingTable.put(sourceAddress,new RoutingEntry(sourceAddress,-1));
+                forwardingTable.put(sourceAddress, new RoutingEntry(sourceAddress, linkLayer.getLinkCost(sourceAddress), sourceAddress));
             }
         }
     }
