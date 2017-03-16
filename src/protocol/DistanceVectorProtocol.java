@@ -48,7 +48,12 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
     }
 
     private void updateKnownHostsList(Packet[] packets) {
-
+        for (Packet packet : packets) {
+            int sourceAddress = packet.getSourceAddress();
+            if (!forwardingTable.containsKey(sourceAddress)) {
+                forwardingTable.put(sourceAddress, new RoutingEntry(sourceAddress, linkLayer.getLinkCost(sourceAddress)));
+            }
+        }
     }
 
     public HashMap<Integer, Integer> getForwardingTable() {

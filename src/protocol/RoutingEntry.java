@@ -7,4 +7,9 @@ package protocol;
 public class RoutingEntry {
     public int nextHop;
     public int cost;
+
+    public RoutingEntry(int nextHop, int cost) {
+        this.nextHop = nextHop;
+        this.cost = cost;
+    }
 }
