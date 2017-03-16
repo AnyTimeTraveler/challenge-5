@@ -4,7 +4,6 @@ import client.IRoutingProtocol;
 import client.LinkLayer;
 import client.Packet;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,21 +51,8 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
             }
 
             //Send
-            linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), neighbour, serializeRoutingTable(personalizedForwardingTable)));
+            linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), neighbour, Util.serializeRoutingTable(personalizedForwardingTable)));
         }
-    }
-
-    byte[] serializeRoutingTable(HashMap<Integer, RoutingEntry> forwardingTable) {
-        try {
-            //Convert object to byteArray
-            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-            ObjectOutputStream out = new ObjectOutputStream(byteOut);
-            out.writeObject(forwardingTable);
-            return byteOut.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     private void broadcastEmptyPacket() {
@@ -78,7 +64,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         for (Packet packet : packets) {
             if (packet.getRawData().length == 0)
                 continue;
-            HashMap<Integer, RoutingEntry> receivedTable = getForwardingTableFromPacket(packet);
+            HashMap<Integer, RoutingEntry> receivedTable = Util.getForwardingTableFromPacket(packet);
 
             for (Map.Entry<Integer, RoutingEntry> entry : receivedTable.entrySet()) {
                 RoutingEntry myEntry = entry.getValue();
@@ -96,19 +82,6 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         }
     }
 
-    HashMap<Integer, RoutingEntry> getForwardingTableFromPacket(Packet packet) {
-        if (packet.getRawData().length == 0)
-            return null;
-        try {
-            ByteArrayInputStream byteIn = new ByteArrayInputStream(packet.getRawData());
-            ObjectInputStream in = new ObjectInputStream(byteIn);
-            // no check needed
-            return (HashMap<Integer, RoutingEntry>) in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     private void updateKnownNeighbours(Packet[] packets) {
         for (Packet packet : packets) {
