@@ -76,7 +76,21 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
 
     private void updateForwardingTableFromReceivedPackets(Packet[] packets) {
         for (Packet packet : packets) {
-            getForwardingTableFromPacket(packet);
+            HashMap<Integer, RoutingEntry> receivedTable = getForwardingTableFromPacket(packet);
+
+            for (Map.Entry<Integer, RoutingEntry> entry : receivedTable.entrySet()) {
+                RoutingEntry myEntry = entry.getValue();
+                myEntry.finalDestination = entry.getKey();
+                myEntry.cost = linkLayer.getLinkCost(myEntry.nextHop);
+                if (forwardingTable.containsKey(myEntry.finalDestination)) {
+                    if (forwardingTable.get(myEntry.finalDestination).cost > myEntry.cost) {
+                        forwardingTable.remove(myEntry.finalDestination);
+                        forwardingTable.put(myEntry.finalDestination, myEntry);
+                    }
+                } else {
+                    forwardingTable.put(myEntry.finalDestination, myEntry);
+                }
+            }
         }
     }
 

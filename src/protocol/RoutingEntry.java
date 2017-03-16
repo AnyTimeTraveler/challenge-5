@@ -9,9 +9,16 @@ import java.io.Serializable;
 public class RoutingEntry implements Serializable{
     public int nextHop;
     public int cost;
+    public int finalDestination;
 
     public RoutingEntry(int nextHop, int cost) {
         this.nextHop = nextHop;
         this.cost = cost;
+    }
+
+    public RoutingEntry(int nextHop, int cost, int finalDestination) {
+        this.nextHop = nextHop;
+        this.cost = cost;
+        this.finalDestination = finalDestination;
     }
 }
