@@ -31,11 +31,11 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
     public void tick(Packet[] packets) {
         System.out.println("tick; received " + packets.length + " packets");
 
+        updateKnownNeightboursList(packets);
+        updateForwardingTableFromReceivedPackets(packets);
         if (forwardingTable.isEmpty()) {
             broadcastEmptyPacket();
         } else {
-            updateKnownNeightboursList(packets);
-            updateForwardingTableFromReceivedPackets(packets);
             sendTableToKnownNeighbours();
         }
     }
@@ -95,6 +95,8 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
     }
 
     HashMap<Integer, RoutingEntry> getForwardingTableFromPacket(Packet packet) {
+        if (packet.getRawData().length == 0)
+            return null;
         try {
             ByteArrayInputStream byteIn = new ByteArrayInputStream(packet.getRawData());
             ObjectInputStream in = new ObjectInputStream(byteIn);
