@@ -21,21 +21,22 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
     @Override
     public void init(LinkLayer linkLayer) {
         this.linkLayer = linkLayer;
+        forwardingTable.put(linkLayer.getOwnAddress(), new RoutingEntry(linkLayer.getOwnAddress(), 0, linkLayer.getOwnAddress()));
     }
 
 
     @Override
     public void tick(Packet[] packets) {
-        if (new Random().nextFloat() < 0.9) {
-            System.out.print("tick; ");
-        } else {
-            System.out.print("tock; ");
-        }
-        System.out.println("received " + packets.length + " packets");
+//        if (new Random().nextFloat() < 0.9) {
+//            System.out.print("tick; ");
+//        } else {
+//            System.out.print("tock; ");
+//        }
+//        System.out.println("received " + packets.length + " packets");
 
         updateKnownNeighbours(packets);
         updateForwardingTableFromReceivedPackets(packets);
-        if (forwardingTable.isEmpty()) {
+        if (forwardingTable.size() == 1) {
             broadcastEmptyPacket();
         } else {
             sendTableToKnownNeighbours();
@@ -48,11 +49,13 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
             HashMap<Integer, RoutingEntry> personalizedForwardingTable = new HashMap<>(forwardingTable);
             //Checks if the table has routes via this neighbour. This entry won't be sent.
             for (HashMap.Entry<Integer, RoutingEntry> personalizedEntry : forwardingTable.entrySet()) {
-                if (personalizedEntry.getValue().nextHop == neighbour) {
+                if (personalizedEntry.getValue().nextHop == neighbour || personalizedEntry.getKey() == neighbour) {
                     personalizedForwardingTable.remove(personalizedEntry.getKey());
                 }
             }
-
+            System.out.println("Sending ");
+            personalizedForwardingTable.entrySet().forEach(entry -> System.out.println(entry.getKey() + ">" + entry.getValue().nextHop + "(" + entry.getValue().cost + ")"));
+            System.out.println("to " + neighbour);
             //Send
             linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), neighbour, serializeRoutingTable(personalizedForwardingTable)));
         }
@@ -117,6 +120,25 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
                 neighboursList.add(sourceAddress);
                 forwardingTable.put(sourceAddress, new RoutingEntry(sourceAddress, linkLayer.getLinkCost(sourceAddress), sourceAddress));
             }
+        }
+        List<Integer> disconnectedNeighbours = new ArrayList<>();
+        for (Integer neighbour : neighboursList){
+            if (Arrays.stream(packets).noneMatch(packet -> packet.getSourceAddress() == neighbour)) {
+                //Then a node disconnected
+                disconnectedNeighbours.add(neighbour);
+                List<Integer> unknownDestinations = new ArrayList<>();
+                for (Map.Entry<Integer, RoutingEntry> entry : forwardingTable.entrySet()){
+                    if (entry.getValue().nextHop == neighbour) {
+                        unknownDestinations.add(entry.getKey());
+                    }
+                }
+                for (int destination : unknownDestinations){
+                    forwardingTable.remove(destination);
+                }
+            }
+        }
+        for (Integer neighbour : disconnectedNeighbours){
+            neighboursList.remove(neighbour);
         }
     }
 
