@@ -5,10 +5,7 @@ import client.LinkLayer;
 import client.Packet;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DistanceVectorProtocol implements IRoutingProtocol {
     private LinkLayer linkLayer;
@@ -29,7 +26,12 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
 
     @Override
     public void tick(Packet[] packets) {
-        System.out.println("tick; received " + packets.length + " packets");
+        if (new Random().nextFloat() < 0.9) {
+            System.out.print("tick; ");
+        } else {
+            System.out.print("tock; ");
+        }
+        System.out.println("received " + packets.length + " packets");
 
         updateKnownNeighbours(packets);
         updateForwardingTableFromReceivedPackets(packets);
@@ -81,9 +83,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
             HashMap<Integer, RoutingEntry> receivedTable = getForwardingTableFromPacket(packet);
 
             for (Map.Entry<Integer, RoutingEntry> entry : receivedTable.entrySet()) {
-                RoutingEntry myEntry = entry.getValue();
-                myEntry.finalDestination = entry.getKey();
-                myEntry.cost = linkLayer.getLinkCost(myEntry.nextHop);
+                RoutingEntry myEntry = new RoutingEntry(packet.getSourceAddress(),linkLayer.getLinkCost(packet.getSourceAddress()) + entry.getValue().cost,entry.getKey());
                 if (forwardingTable.containsKey(myEntry.finalDestination)) {
                     if (forwardingTable.get(myEntry.finalDestination).cost > myEntry.cost) {
                         forwardingTable.remove(myEntry.finalDestination);
