@@ -83,7 +83,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
             for (Map.Entry<Integer, RoutingEntry> entry : receivedTable.entrySet()) {
                 RoutingEntry myEntry = entry.getValue();
                 myEntry.finalDestination = entry.getKey();
-                myEntry.cost = linkLayer.getLinkCost(myEntry.nextHop);
+                myEntry.cost = linkLayer.getLinkCost(packet.getSourceAddress());
                 if (forwardingTable.containsKey(myEntry.finalDestination)) {
                     if (forwardingTable.get(myEntry.finalDestination).cost > myEntry.cost) {
                         forwardingTable.remove(myEntry.finalDestination);
@@ -115,7 +115,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
             int sourceAddress = packet.getSourceAddress();
             if (!neighboursList.contains(sourceAddress)) {
                 neighboursList.add(sourceAddress);
-                forwardingTable.put(sourceAddress,new RoutingEntry(sourceAddress,-1));
+                forwardingTable.put(sourceAddress,new RoutingEntry(sourceAddress,linkLayer.getLinkCost(sourceAddress)));
             }
         }
     }
