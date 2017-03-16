@@ -5,16 +5,20 @@ import client.LinkLayer;
 import client.Packet;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DistanceVectorProtocol implements IRoutingProtocol {
     private LinkLayer linkLayer;
 
     private HashMap<Integer, RoutingEntry> forwardingTable;
+    private List<Integer> neightboursList;
 
     public DistanceVectorProtocol() {
         forwardingTable = new HashMap<>();
+        neightboursList = new ArrayList<>();
     }
 
     @Override
@@ -33,7 +37,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         if (forwardingTable.isEmpty()) {
             broadcastEmptyPacket();
         } else {
-            updateKnownHostsList(packets);
+            updateKnownNeightboursList(packets);
             updateForwardingTableFromReceivedPackets(packets);
             sendTableToKnownNeighbours(forwardingTable);
         }
@@ -43,7 +47,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), 0, serializeRoutingTable(forwardingTable)));
     }
 
-    public byte[] serializeRoutingTable(HashMap<Integer, RoutingEntry> forwardingTable) {
+    byte[] serializeRoutingTable(HashMap<Integer, RoutingEntry> forwardingTable) {
         try {
             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(byteOut);
@@ -66,7 +70,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         }
     }
 
-    public HashMap<Integer, RoutingEntry> getForwardingTableFromPacket(Packet packet) {
+    HashMap<Integer, RoutingEntry> getForwardingTableFromPacket(Packet packet) {
         try {
             ByteArrayInputStream byteIn = new ByteArrayInputStream(packet.getRawData());
             ObjectInputStream in = new ObjectInputStream(byteIn);
@@ -77,11 +81,10 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         return null;
     }
 
-    private void updateKnownHostsList(Packet[] packets) {
+    private void updateKnownNeightboursList(Packet[] packets) {
         for (Packet packet : packets) {
-            int sourceAddress = packet.getSourceAddress();
-            if (!forwardingTable.containsKey(sourceAddress)) {
-                forwardingTable.put(sourceAddress, new RoutingEntry(sourceAddress, linkLayer.getLinkCost(sourceAddress)));
+            if (!neightboursList.contains(packet.getSourceAddress())) {
+                neightboursList.add(packet.getSourceAddress());
             }
         }
     }
