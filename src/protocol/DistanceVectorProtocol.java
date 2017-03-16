@@ -26,7 +26,8 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         }
 
         if (forwardingTable.isEmpty()) {
-            sendEmptyPacket();
+            for (Packet packet : packets)
+                sendEmptyPacket(packet.getSourceAddress());
         } else {
             updateKnownHostsList(packets);
             updateForwardingTableFromReceivedPackets(packets);
