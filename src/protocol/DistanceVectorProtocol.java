@@ -76,6 +76,8 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
 
     private void updateForwardingTableFromReceivedPackets(Packet[] packets) {
         for (Packet packet : packets) {
+            if (packet.getRawData().length == 0)
+                continue;
             HashMap<Integer, RoutingEntry> receivedTable = getForwardingTableFromPacket(packet);
 
             for (Map.Entry<Integer, RoutingEntry> entry : receivedTable.entrySet()) {
