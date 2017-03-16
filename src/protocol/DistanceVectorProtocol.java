@@ -40,15 +40,20 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
     }
 
     private void sendTableToKnownNeighbours(HashMap<Integer, RoutingEntry> forwardingTable) {
+        linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), 0, serializeRoutingTable(forwardingTable)));
+    }
+
+    public byte[] serializeRoutingTable(HashMap<Integer, RoutingEntry> forwardingTable) {
         try {
             ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(byteOut);
             out.writeObject(forwardingTable);
+            return byteOut.toByteArray();
 
-            linkLayer.transmit(new Packet(linkLayer.getOwnAddress(), 0, byteOut.toByteArray()));
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     private void broadcastEmptyPacket() {
@@ -61,7 +66,7 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         }
     }
 
-    private HashMap<Integer, RoutingEntry> getForwardingTableFromPacket(Packet packet) {
+    public HashMap<Integer, RoutingEntry> getForwardingTableFromPacket(Packet packet) {
         try {
             ByteArrayInputStream byteIn = new ByteArrayInputStream(packet.getRawData());
             ObjectInputStream in = new ObjectInputStream(byteIn);
