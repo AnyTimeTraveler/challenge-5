@@ -34,11 +34,28 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
 //        System.out.println("received " + packets.length + " packets");
 
         updateKnownNeighbours(packets);
+        checkForDeadNeighbours(packets);
         updateForwardingTableFromReceivedPackets(packets);
         if (forwardingTable.size() == 1) {
             broadcastEmptyPacket();
         } else {
             sendTableToKnownNeighbours();
+        }
+    }
+
+    private void checkForDeadNeighbours(Packet[] packets) {
+
+        if (packets.length < neighboursList.size()) {
+            boolean alive = false;
+            for (Map.Entry<Integer,RoutingEntry> neighbour : forwardingTable.entrySet()) {
+                for (Packet packet : packets) {
+                    if (neighbour.getValue().nextHop == packet.getSourceAddress())
+                        alive = true;
+                }
+                if (!alive){
+                    forwardingTable.put(neighbour.getKey(),forwardingTable.get(neighbour.getKey()).setCost(Integer.MAX_VALUE));
+                }
+            }
         }
     }
 
@@ -69,12 +86,12 @@ public class DistanceVectorProtocol implements IRoutingProtocol {
         for (Packet packet : packets) {
             if (packet.getRawData().length == 0)
                 continue;
-            HashMap<Integer, RoutingEntry> receivedTable = Util.getForwardingTableFromPacket(packet);
+            HashMap<Integer, RoutingEntry> receivedTable = (HashMap<Integer, RoutingEntry>) Util.getForwardingTableFromPacket(packet);
 
             for (Map.Entry<Integer, RoutingEntry> entry : receivedTable.entrySet()) {
-                RoutingEntry myEntry = new RoutingEntry(packet.getSourceAddress(),linkLayer.getLinkCost(packet.getSourceAddress()) + entry.getValue().cost,entry.getKey());
+                RoutingEntry myEntry = new RoutingEntry(packet.getSourceAddress(), linkLayer.getLinkCost(packet.getSourceAddress()) + entry.getValue().cost, entry.getKey());
                 if (forwardingTable.containsKey(myEntry.finalDestination)) {
-                    if (forwardingTable.get(myEntry.finalDestination).cost > myEntry.cost) {
+                    if (forwardingTable.get(myEntry.finalDestination).cost > myEntry.cost || myEntry.cost == Integer.MAX_VALUE) {
                         forwardingTable.remove(myEntry.finalDestination);
                         forwardingTable.put(myEntry.finalDestination, myEntry);
                     }
