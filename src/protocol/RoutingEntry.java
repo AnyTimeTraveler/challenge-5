@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Simple object which describes a route entry in the forwarding table.
  * Can be extended to include additional data.
  */
-public class RoutingEntry implements Serializable{
+public class RoutingEntry implements Serializable {
     public int nextHop;
     public int cost;
     public int finalDestination;
@@ -14,11 +14,7 @@ public class RoutingEntry implements Serializable{
     public RoutingEntry(int nextHop, int cost) {
         this.nextHop = nextHop;
         this.cost = cost;
+        this.finalDestination = nextHop;
     }
 
-    public RoutingEntry(int nextHop, int cost, int finalDestination) {
-        this.nextHop = nextHop;
-        this.cost = cost;
-        this.finalDestination = finalDestination;
-    }
 }
